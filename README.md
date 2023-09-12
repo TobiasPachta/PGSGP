@@ -273,11 +273,16 @@ func _on_leaderboard_score_retrieve_failed(leaderboardId: String):
 
 ##### Retrieve Leaderboard top scores
 ```gdscript
+#maxResult must be an integer between 1 and 25
 play_games_services.retrieveLeaderboardTopScores("LEADERBOARD_ID", "SPAN", "COLLECTION", maxResult)
 
 # Callbacks:
 func _on_Leader_Board_Top_Score(leaderboardId: String, responseJson: String):
-	pass
+	var score_dict = parse_json(responseJson)
+	for score in score_dict:
+		var scoreHolder = score.scoreHolder #the public name of the player 
+		var rank = score.rank #the place on the leaderboard
+		var points = score.score #the score of the player
 
 func _on_Leader_Board_Top_Score_failed(leaderboardId: String):
 	pass
