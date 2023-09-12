@@ -26,46 +26,33 @@ class LeaderboardsController(
 
     fun retrieveLeaderboardScore(leaderboardId: String, span: String, leaderboardCollection: String) {
         val googleSignInAccount = GoogleSignIn.getLastSignedInAccount(activity)
-
         var collection = COLLECTION_PUBLIC
-
         if (leaderboardCollection.lowercase(Locale.ROOT).contains("friends")) {
             collection = COLLECTION_FRIENDS
         }
-
         var finalSpan = TIME_SPAN_ALL_TIME;
-
         if (span.lowercase(Locale.ROOT).contains("weekly")) {
             finalSpan = TIME_SPAN_WEEKLY
         } else if (span.lowercase(Locale.ROOT).contains("daily")) {
             finalSpan = TIME_SPAN_DAILY
         }
-
         if (connectionController.isConnected().first && googleSignInAccount != null) {
-            Log.i("godot", "-------------------\n\n THE LEADERBOARD:\n ${leaderboardId}\n\n")
-
+            //Log.i("godot", "-------------------\n\n THE LEADERBOARD:\n ${leaderboardId}\n\n")
             Games.getLeaderboardsClient(activity, googleSignInAccount)
                 .loadCurrentPlayerLeaderboardScore(leaderboardId, finalSpan, collection)
                 .addOnSuccessListener { lbScore ->
 //                    val scores = lbScores.get();
-
                     val leaderboardScore = LeaderboardScore (
                         -1, 0, "Unknown"
                     )
-
                     if (lbScore != null) {
                         val score = lbScore.get();
-                        if (score != null) {
-                            Log.i("godot", "-------------------\n\n THE RESULT:\n ${score.rank}\n\n")
-                        }
-
                         if (score != null) {
                             leaderboardScore.rank = score.rank
                             leaderboardScore.score = score.rawScore
                             leaderboardScore.scoreHolder = score.scoreHolderDisplayName
                         }
                     }
-
                     leaderBoardsListener.onCurrentPlayerLeaderBoardScoreLoaded(leaderboardId, Gson().toJson(leaderboardScore))
                 }
                 .addOnFailureListener {reason ->
@@ -74,9 +61,48 @@ class LeaderboardsController(
 
                     leaderBoardsListener.onCurrentPlayerLeaderBoardScoreLoadingFailed(leaderboardId)
                 }
-
         }
+    }
 
+    fun retrieveLeaderboardTopScores(leaderboardId: String, span: String, leaderboardCollection: String, maxResult: Int) {
+        val googleSignInAccount = GoogleSignIn.getLastSignedInAccount(activity)
+        var collection = COLLECTION_PUBLIC
+        val leaderboardScoreList = ArrayList<LeaderboardScore>()
+        if (leaderboardCollection.lowercase(Locale.ROOT).contains("friends")) {
+            collection = COLLECTION_FRIENDS
+        }
+        var finalSpan = TIME_SPAN_ALL_TIME;
+        if (span.lowercase(Locale.ROOT).contains("weekly")) {
+            finalSpan = TIME_SPAN_WEEKLY
+        } else if (span.lowercase(Locale.ROOT).contains("daily")) {
+            finalSpan = TIME_SPAN_DAILY
+        }
+        if (connectionController.isConnected().first && googleSignInAccount != null) {
+            Games.getLeaderboardsClient(activity, googleSignInAccount)
+                .loadTopScores(leaderboardId, finalSpan, collection, maxResult)
+                .addOnCompleteListener { task ->
+                    val leaderboardData = task.result?.get()
+                    if (task.isSuccessful && leaderboardData != null) {
+                        for (a in leaderboardData.scores) {
+                            val leaderboardScore = LeaderboardScore(
+                                -1, 0, "Unknown"
+                            )
+                            leaderboardScore.rank = a.rank
+                            leaderboardScore.score = a.rawScore
+                            leaderboardScore.scoreHolder = a.scoreHolderDisplayName
+                            leaderboardScoreList.add(leaderboardScore)
+                        }
+                    }
+                    leaderBoardsListener.onLeaderBoardTopScore(leaderboardId, Gson().toJson(leaderboardScoreList))
+                    leaderboardData?.release()
+                }
+                .addOnFailureListener {reason ->
+                    Log.i("godot", "-------------------\n\n FAILURE REASON:\n ${reason}\n\n")
+                    Log.i("godot", "-------------------\n\n FAILURE REASON:\n ${reason.message}\n\n")
+
+                    leaderBoardsListener.onLeaderBoardTopScoreFailed(leaderboardId)
+                }
+        }
     }
 
     fun submitScore(leaderboardId: String, score: Int) {

@@ -3,12 +3,12 @@ package io.cgisca.godot.gpgs
 import android.app.Activity
 import android.content.Intent
 import android.util.Log
-import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.auth.api.Auth
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.Scopes
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.games.SnapshotsClient
@@ -29,7 +29,6 @@ import io.cgisca.godot.gpgs.signin.SignInListener
 import io.cgisca.godot.gpgs.signin.UserProfile
 import io.cgisca.godot.gpgs.stats.PlayerStatsController
 import io.cgisca.godot.gpgs.stats.PlayerStatsListener
-import org.godotengine.godot.BuildConfig
 import org.godotengine.godot.Godot
 import org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.SignalInfo
@@ -68,9 +67,13 @@ class PlayGameServicesGodot(godot: Godot) : GodotPlugin(godot), AchievementsList
             SignalInfo("_on_achievement_steps_setting_failed", String::class.java)
         val SIGNAL_ACHIEVEMENT_INFO_LOAD = SignalInfo("_on_achievement_info_loaded", String::class.java)
         val SIGNAL_ACHIEVEMENT_INFO_LOAD_FAILED = SignalInfo("_on_achievement_info_load_failed", String::class.java)
+        val SIGNAL_LEADERBOARD_SCORE_RETRIEVED = SignalInfo("_on_leaderboard_score_retrieved", String::class.java, String::class.java)
+        val SIGNAL_LEADERBOARD_SCORE_RETRIEVED_FAILED = SignalInfo("_on_leaderboard_score_retrieve_failed", String::class.java)
         val SIGNAL_LEADERBOARD_SCORE_SUBMITTED = SignalInfo("_on_leaderboard_score_submitted", String::class.java)
         val SIGNAL_LEADERBOARD_SCORE_SUBMITTED_FAILED =
             SignalInfo("_on_leaderboard_score_submitting_failed", String::class.java)
+        val SIGNAL_LEADERBOARD_RETRIEVE_TOP_SCORE = SignalInfo("_on_Leader_Board_Top_Score", String::class.java, String::class.java)
+        var SIGNAL_LEADERBOARD_RETRIEVE_TOP_SCORE_FAILED = SignalInfo("_on_Leader_Board_Top_Score_failed", String::class.java)
         val SIGNAL_EVENT_SUBMITTED = SignalInfo("_on_event_submitted", String::class.java)
         val SIGNAL_EVENT_SUBMITTED_FAILED = SignalInfo("_on_event_submitting_failed", String::class.java)
         val SIGNAL_EVENTS_LOADED = SignalInfo("_on_events_loaded", String::class.java)
@@ -106,6 +109,8 @@ class PlayGameServicesGodot(godot: Godot) : GodotPlugin(godot), AchievementsList
             "incrementAchievement",
             "setAchievementSteps",
             "loadAchievementInfo",
+            "retrieveLeaderboardScore",
+            "retrieveLeaderboardTopScores",
             "showLeaderBoard",
             "showAllLeaderBoards",
             "submitLeaderBoardScore",
@@ -136,8 +141,12 @@ class PlayGameServicesGodot(godot: Godot) : GodotPlugin(godot), AchievementsList
             SIGNAL_ACHIEVEMENT_STEPS_SET_FAILED,
             SIGNAL_ACHIEVEMENT_INFO_LOAD,
             SIGNAL_ACHIEVEMENT_INFO_LOAD_FAILED,
+            SIGNAL_LEADERBOARD_SCORE_RETRIEVED,
+            SIGNAL_LEADERBOARD_SCORE_RETRIEVED_FAILED,
             SIGNAL_LEADERBOARD_SCORE_SUBMITTED,
             SIGNAL_LEADERBOARD_SCORE_SUBMITTED_FAILED,
+            SIGNAL_LEADERBOARD_RETRIEVE_TOP_SCORE,
+            SIGNAL_LEADERBOARD_RETRIEVE_TOP_SCORE_FAILED,
             SIGNAL_EVENT_SUBMITTED,
             SIGNAL_EVENT_SUBMITTED_FAILED,
             SIGNAL_EVENTS_LOADED,
@@ -284,6 +293,18 @@ class PlayGameServicesGodot(godot: Godot) : GodotPlugin(godot), AchievementsList
         }
     }
 
+    fun retrieveLeaderboardScore(leaderBoardId: String, span: String, leaderboardCollection: String) {
+        runOnUiThread {
+            leaderboardsController.retrieveLeaderboardScore(leaderBoardId, span, leaderboardCollection)
+        }
+    }
+
+    fun retrieveLeaderboardTopScores(leaderboardId: String, span: String, leaderboardCollection: String, maxResult: Int) {
+        runOnUiThread {
+            leaderboardsController.retrieveLeaderboardTopScores(leaderboardId, span, leaderboardCollection, maxResult)
+        }
+    }
+
     fun showAllLeaderBoards() {
         runOnUiThread {
             leaderboardsController.showAllLeaderboards()
@@ -405,11 +426,11 @@ class PlayGameServicesGodot(godot: Godot) : GodotPlugin(godot), AchievementsList
     }
 
     override fun onCurrentPlayerLeaderBoardScoreLoadingFailed(leaderboardId: String) {
-        TODO("Not yet implemented")
+        emitSignal(SIGNAL_LEADERBOARD_SCORE_RETRIEVED_FAILED.name, leaderboardId)
     }
 
     override fun onCurrentPlayerLeaderBoardScoreLoaded(leaderboardId: String, scoreJson: String) {
-        TODO("Not yet implemented")
+        emitSignal(SIGNAL_LEADERBOARD_SCORE_RETRIEVED.name, leaderboardId, scoreJson)
     }
 
     override fun onLeaderBoardScoreSubmitted(leaderboardId: String) {
@@ -418,6 +439,14 @@ class PlayGameServicesGodot(godot: Godot) : GodotPlugin(godot), AchievementsList
 
     override fun onLeaderBoardScoreSubmittingFailed(leaderboardId: String) {
         emitSignal(SIGNAL_LEADERBOARD_SCORE_SUBMITTED_FAILED.name, leaderboardId)
+    }
+
+    override fun onLeaderBoardTopScore(leaderboardId: String, response: String) {
+        emitSignal(SIGNAL_LEADERBOARD_RETRIEVE_TOP_SCORE.name, leaderboardId, response)
+    }
+
+    override fun onLeaderBoardTopScoreFailed(leaderboardId: String) {
+        emitSignal(SIGNAL_LEADERBOARD_RETRIEVE_TOP_SCORE_FAILED.name, leaderboardId)
     }
 
     override fun onSavedGameSuccess() {

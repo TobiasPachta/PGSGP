@@ -5,4 +5,6 @@ interface LeaderBoardsListener {
     fun onCurrentPlayerLeaderBoardScoreLoaded(leaderboardId: String, scoreJson: String)
     fun onLeaderBoardScoreSubmitted(leaderboardId: String)
     fun onLeaderBoardScoreSubmittingFailed(leaderboardId: String)
+    fun onLeaderBoardTopScore(leaderboardId: String, response: String)
+    fun onLeaderBoardTopScoreFailed(leaderboardId: String)
 }
