@@ -259,6 +259,31 @@ play_games_services.showLeaderBoard("LEADERBOARD_ID")
 play_games_services.showAllLeaderBoards()
 ```
 
+##### Retrieve Leaderboard score for current player
+```gdscript
+play_games_services.retrieveLeaderboardScore("LEADERBOARD_ID", "SPAN", "COLLECTION")
+
+# Callbacks:
+func _on_leaderboard_score_retrieved(leaderboardId: String, responseJson: String):
+	pass
+
+func _on_leaderboard_score_retrieve_failed(leaderboardId: String):
+	pass
+```
+
+##### Retrieve Leaderboard top scores
+```gdscript
+play_games_services.retrieveLeaderboardTopScores("LEADERBOARD_ID", "SPAN", "COLLECTION", maxResult)
+
+# Callbacks:
+func _on_Leader_Board_Top_Score(leaderboardId: String, responseJson: String):
+	pass
+
+func _on_Leader_Board_Top_Score_failed(leaderboardId: String):
+	pass
+
+```
+
 #### Events
 ##### Submit event
 ```gdscript
