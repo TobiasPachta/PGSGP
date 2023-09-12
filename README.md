@@ -1,5 +1,5 @@
-# Google Play Games Services Plugin for Godot 4
-This is an Android Play Games Services plugin for Godot Game Engine 4.1.
+# Google Play Games Services Plugin for Godot 3.5.2
+This is an Android Play Games Services plugin for Godot Game Engine 3.5.2.
 
 [![Android](https://img.shields.io/badge/Platform-Android-brightgreen.svg)](https://developer.android.com)
 [![Godot](https://img.shields.io/badge/Godot%20Engine-3.5.2-blue.svg)](https://github.com/godotengine/godot/)
@@ -116,6 +116,10 @@ if Engine.has_singleton("GodotPlayGamesServices"):
   play_games_services.connect("_on_player_info_loading_failed", self, "_on_player_info_loading_failed")
   play_games_services.connect("_on_player_stats_loaded", self, "_on_player_stats_loaded")  # json_response: String
   play_games_services.connect("_on_player_stats_loading_failed", self, "_on_player_stats_loading_failed")
+  play_games_services.connect("_on_leaderboard_score_submitted", self, "_on_leaderboard_score_submitted") # leaderboard_id: String
+  play_games_services.connect("_on_leaderboard_score_submitting_failed", self, "_on_leaderboard_score_submitting_failed") # leaderboard_id: String
+  play_games_services.connect("_on_Leader_Board_Top_Score", self, "_on_Leader_Board_Top_Score") # leaderboard_id: String
+  play_games_services.connect("_on_Leader_Board_Top_Score_failed", self, "_on_Leader_Board_Top_Score_failed") # leaderboard_id: String
 ```
 After what plugin was initialized you can use supported features
 
